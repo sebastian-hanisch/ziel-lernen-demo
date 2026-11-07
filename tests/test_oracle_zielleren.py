@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 import zll_algorithm as A
+import zll_evaluation as ev
 import zll_scenario as S
 from conftest import hand_pair
 
@@ -89,6 +90,39 @@ def test_explained_intervals_n5_sampled_points(seed):
     sample = [(c[0], c[1]) for c in pair.hull] + rng.sample(sorted(set(pts)), 10)
     for pt in sample:
         assert A.explain_interval(pair.hull, pair.bps, pt) == _ref_interval(bests, cand, pt), pt
+
+
+@pytest.mark.parametrize("n", [3, 4])
+def test_prediction_counts_only_the_wrong_plans_for_the_median_regret(n):
+    """Vorhersage gegen eine Schleife über alle Pläne: richtig = derselbe Plan beim geschätzten wie beim wahren Gewicht; der Median zählt nur die falschen."""
+    import statistics
+    tests, pts_all = [], []
+    for seed in range(1, 9):
+        c1, c2 = _matrices(n, seed)
+        pair = A.build_pair(np.array(c1), np.array(c2))
+        tests.append((pair.hull, pair.bps))
+        pts_all.append((_points(c1, c2), _candidates(_points(c1, c2))))
+    checked_wrong = 0
+    for g_est, w in [(20, 60), (45, 50), (30, 33), (70, 10), (55, 55), (12, 88)]:
+        if any(F(g_est, 100) in cand or F(w, 100) in cand for _, cand in pts_all):
+            continue                                                  # Gewicht auf einem Haltepunkt: Gleichstand, die Zuordnung wäre nicht eindeutig
+        got = ev._predict(tests, F(g_est, 100), w)
+        hits, wrong, worst = 0, [], F(0)
+        for pts, cand in pts_all:
+            def best(g):
+                return min(pts, key=lambda q: ((1 - F(g, 100)) * q[0] + F(g, 100) * q[1], q))
+            p_est, p_true = best(g_est), best(w)
+            val = lambda q: (1 - F(w, 100)) * q[0] + F(w, 100) * q[1]
+            r = (val(p_est) - val(p_true)) / val(p_true)
+            worst = max(worst, r)
+            if p_est == p_true:
+                hits += 1
+            else:
+                wrong.append(float(r))
+        assert got["hits"] == hits and got["n_wrong"] == len(wrong) == len(tests) - hits
+        assert got["regret_median"] == (statistics.median(wrong) if wrong else 0.0) and got["regret_max"] == float(worst)
+        checked_wrong += len(wrong)
+    assert checked_wrong > 0                                          # der Test sieht falsche Pläne, sonst prüfte er nichts
 
 
 @pytest.mark.parametrize("n,seed", CASES)

@@ -82,13 +82,17 @@ def trial(settings: Settings) -> Trial:
 
 def _predict(tests: list, weight: Fraction, w: int) -> dict:
     """Vorhersage auf den Test-Instanzen: der Plan beim geschätzten Gewicht gegen den Plan beim wahren Gewicht (w in ganzen Prozent)."""
-    hits, regrets = 0, []
+    hits, regrets, wrong = 0, [], []
     for hull, bps in tests:
         kp, kt = A.corner_at(hull, bps, weight), A.corner_at(hull, bps, Fraction(w, 100))
         hits += kp == kt
         pt = (hull[kp][0], hull[kp][1])
-        regrets.append(float(A.regret(hull, pt, w)))
-    return {"hits": hits, "n": len(tests), "regret_median": float(np.median(regrets)), "regret_max": float(max(regrets)), "regrets": regrets}
+        r = float(A.regret(hull, pt, w))
+        regrets.append(r)
+        if kp != kt:
+            wrong.append(r)      # falsch heißt: eine andere Ecke als beim wahren Gewicht (bei einem Gleichstand kann der Regret trotzdem 0 sein)
+    # Median nur über die falschen Pläne (richtige haben Regret 0 und gehören nicht dazu); ohne falschen Plan: 0
+    return {"hits": hits, "n": len(tests), "n_wrong": len(wrong), "regret_median": float(np.median(wrong)) if wrong else 0.0, "regret_max": float(max(regrets)), "regrets": regrets, "wrong_regrets": wrong}
 
 
 def explain(t: Trial) -> dict:
@@ -156,7 +160,7 @@ def sweep_exact() -> dict:
                 lo, hi = A.intersect(ivs[:K])
                 mid = (lo + hi) / 2
                 pred = _predict(tests, mid, w)
-                case[K] = {"width": float(hi - lo) * 100, "err": abs(float(mid) * 100 - w), "contains": lo <= Fraction(w, 100) <= hi, "hits": pred["hits"], "regrets": pred["regrets"]}
+                case[K] = {"width": float(hi - lo) * 100, "err": abs(float(mid) * 100 - w), "contains": lo <= Fraction(w, 100) <= hi, "hits": pred["hits"], "regrets": pred["regrets"], "wrong_regrets": pred["wrong_regrets"]}
             cases.append(case)
     return {"cases": cases}
 
@@ -168,7 +172,8 @@ def summary_exact(res: dict) -> dict:
         w = [c[K]["width"] for c in cs]
         hits = sum(c[K]["hits"] for c in cs)
         reg = [r for c in cs for r in c[K]["regrets"]]
-        out["per"][K] = {"width": _q3(w), "within5": sum(x <= 5 for x in w), "err": _q3(c[K]["err"] for c in cs), "hits": hits, "n_pred": len(cs) * C.N_TEST, "regret": (float(np.median(reg)), float(max(reg))),
+        wrong = [r for c in cs for r in c[K]["wrong_regrets"]]
+        out["per"][K] = {"width": _q3(w), "within5": sum(x <= 5 for x in w), "err": _q3(c[K]["err"] for c in cs), "hits": hits, "n_pred": len(cs) * C.N_TEST, "n_wrong": len(wrong), "regret": (float(np.median(wrong)) if wrong else 0.0, float(max(reg))),
                          "contains": sum(c[K]["contains"] for c in cs)}
     return out
 
@@ -261,13 +266,20 @@ def verdict_explain(ex: dict) -> tuple[str, str]:
                     f"das wahre Gewicht {w} % {inside}, die Mitte {pp(ex['mid'])} % liegt {pp(ex['err_mid'])} Prozentpunkte daneben.")
 
 
+def _wrong_regret(p: dict) -> str:
+    """Der Regret der falschen Pläne (nur diese zählen); ohne falschen Plan steht dort, dass keiner falsch ist."""
+    if p["n_wrong"] == 0:
+        return "kein Plan falsch"
+    return f"Regret der falschen Pläne im Median {pct(p['regret_median'])}, höchstens {pct(p['regret_max'])}"
+
+
 def verdict_predict(ex: dict) -> tuple[str, str]:
     f = ex["pred_fit"]
     fit = f"die robuste Anpassung ({ex['g_fit']} %) {f['hits']} von {f['n']}"
     if "pred_mid" not in ex:
-        return "info", f"Auf {f['n']} neuen Instanzen sagt {fit} Plänen richtig voraus (Regret der falschen Pläne im Median {pct(f['regret_median'])}, höchstens {pct(f['regret_max'])}); die Mitte gibt es nicht, die Menge ist leer."
+        return "info", f"Auf {f['n']} neuen Instanzen sagt {fit} Plänen richtig voraus ({_wrong_regret(f)}); die Mitte gibt es nicht, die Menge ist leer."
     m = ex["pred_mid"]
-    return "info", (f"Auf {m['n']} neuen Instanzen sagt die Mitte ({pp(ex['mid'])} %) {m['hits']} von {m['n']} Plänen richtig voraus (Regret der falschen Pläne im Median {pct(m['regret_median'])}, höchstens {pct(m['regret_max'])}), "
+    return "info", (f"Auf {m['n']} neuen Instanzen sagt die Mitte ({pp(ex['mid'])} %) {m['hits']} von {m['n']} Plänen richtig voraus ({_wrong_regret(m)}), "
                     f"{fit} Plänen.")
 
 

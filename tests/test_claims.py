@@ -48,8 +48,10 @@ def test_exact_widths_errors_and_predictions(sweeps):
     _claim(f"{_slash([per[K]['err'][1] for K in KS], d1)}; Maximum {_slash([per[K]['err'][2] for K in KS], d1)}")
     _claim(_slash([_tsd(per[K]["hits"]) for K in KS], str))
     _claim(f"**{_slash([per[K]['hits'] / per[K]['n_pred'] * 100 for K in KS], d1)} %**")
+    _claim(f"Median {_slash([per[K]['regret'][0] * 100 for K in KS], d1)} % (nur über die falschen Pläne: {_slash([_tsd(per[K]['n_wrong']) for K in KS], str)})")
+    assert all(per[K]["n_wrong"] == per[K]["n_pred"] - per[K]["hits"] for K in KS)       # gezählt werden genau die falschen Pläne
     _claim(f"Maximum {_slash([per[K]['regret'][1] * 100 for K in KS], d1)} %")
-    assert all(per[K]["regret"][0] == 0 for K in KS) and all(per[K]["contains"] == 180 for K in KS)
+    assert all(per[K]["contains"] == 180 for K in KS)
     _claim("**180 von 180**")
 
 

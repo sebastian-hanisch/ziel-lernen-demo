@@ -47,6 +47,7 @@ def test_no_non_default_preset_equals_the_default_settings():
 def test_main_preset_leaves_a_narrow_interval_open():
     ex = _ex(P_FIVE)
     assert (round(ex["lo"], 1), round(ex["hi"], 1), round(ex["width"], 1), round(ex["mid"], 1), ex["pred_mid"]["hits"]) == (35.8, 41.7, 5.9, 38.8, 19) and ex["contains"]
+    assert ex["pred_mid"]["n_wrong"] == 1 and round(ex["pred_mid"]["regret_median"] * 100, 2) == 0.14 == round(ex["pred_mid"]["regret_max"] * 100, 2)      # Median über den einen falschen Plan
 
 
 def test_one_decision_preset_is_wide_and_the_midpoint_predicts_badly():

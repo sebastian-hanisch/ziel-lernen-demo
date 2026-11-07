@@ -2,6 +2,7 @@
 
 from fractions import Fraction
 
+import numpy as np
 import pytest
 
 import zll_algorithm as A
@@ -78,6 +79,9 @@ def test_prediction_counts_are_consistent(seed):
         assert 0 <= p["hits"] <= p["n"] == C.N_TEST and len(p["regrets"]) == C.N_TEST and all(r >= 0 for r in p["regrets"])
         assert p["regret_max"] >= p["regret_median"] >= 0
         assert sum(r == 0 for r in p["regrets"]) >= p["hits"]          # ein richtiger Plan hat Regret 0
+        assert p["n_wrong"] == p["n"] - p["hits"] == len(p["wrong_regrets"])       # der Median zählt genau die falschen Pläne
+        assert p["regret_median"] == (float(np.median(p["wrong_regrets"])) if p["n_wrong"] else 0.0)
+        assert p["regret_max"] == max(p["regrets"]) and (p["n_wrong"] > 0 or p["regret_max"] == 0)
 
 
 @pytest.mark.parametrize("seed", SEEDS)

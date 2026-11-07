@@ -37,12 +37,14 @@ def test_explain_verdict_says_when_the_true_weight_is_not_inside():
 
 
 def test_predict_verdict_cases():
-    assert ev.verdict_predict(_ex(P_FIVE))[1] == ("Auf 20 neuen Instanzen sagt die Mitte (38,8 %) 19 von 20 Plänen richtig voraus (Regret der falschen Pläne im Median 0,0 %, höchstens 0,1 %), "
+    assert ev.verdict_predict(_ex(P_FIVE))[1] == ("Auf 20 neuen Instanzen sagt die Mitte (38,8 %) 19 von 20 Plänen richtig voraus (Regret der falschen Pläne im Median 0,1 %, höchstens 0,1 %), "
                                                   "die robuste Anpassung (36 %) 17 von 20 Plänen.")
-    assert "sagt die Mitte (78,8 %) 7 von 20 Plänen richtig voraus" in ev.verdict_predict(_ex(P_ONE))[1] and "die robuste Anpassung (58 %) 19 von 20 Plänen" in ev.verdict_predict(_ex(P_ONE))[1]
-    assert ev.verdict_predict(_ex(P_EMPTY))[1] == ("Auf 20 neuen Instanzen sagt die robuste Anpassung (15 %) 19 von 20 Plänen richtig voraus (Regret der falschen Pläne im Median 0,0 %, höchstens 1,2 %); "
+    assert "sagt die Mitte (78,8 %) 7 von 20 Plänen richtig voraus (Regret der falschen Pläne im Median 2,9 %, höchstens 9,5 %)" in ev.verdict_predict(_ex(P_ONE))[1] and "die robuste Anpassung (58 %) 19 von 20 Plänen" in ev.verdict_predict(_ex(P_ONE))[1]
+    assert ev.verdict_predict(_ex(P_EMPTY))[1] == ("Auf 20 neuen Instanzen sagt die robuste Anpassung (15 %) 19 von 20 Plänen richtig voraus (Regret der falschen Pläne im Median 1,2 %, höchstens 1,2 %); "
                                                    "die Mitte gibt es nicht, die Menge ist leer.")
     assert "Mitte (30,0 %) 20 von 20" in ev.verdict_predict(_ex(P_TWENTY))[1]
+    text = ev.verdict_predict(_ex(P_TWENTY))[1]                       # kein falscher Plan: keine Zahl über „falsche Pläne“, sondern der Satz dazu
+    assert "20 von 20 Plänen richtig voraus (kein Plan falsch), die robuste Anpassung" in text and "Median" not in text
 
 
 def test_eps_verdict_cases():

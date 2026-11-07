@@ -77,7 +77,9 @@ def test_exact_sweep_maxima_and_regrets(sweeps):
     s = sweeps["exact"]["per"]
     assert [round(s[K]["width"][2], 1) for K in C.SWEEP_KS] == [76.3, 47.6, 33.0, 20.7, 15.2, 9.7]
     assert [round(s[K]["err"][2], 1) for K in C.SWEEP_KS] == [31.9, 16.0, 16.0, 9.2, 6.3, 3.5]
-    assert [round(s[K]["regret"][1] * 100, 1) for K in C.SWEEP_KS] == [31.6, 11.1, 11.1, 7.8, 3.9, 2.0] and all(s[K]["regret"][0] == 0 for K in C.SWEEP_KS)
+    assert [round(s[K]["regret"][1] * 100, 1) for K in C.SWEEP_KS] == [31.6, 11.1, 11.1, 7.8, 3.9, 2.0]
+    assert [round(s[K]["regret"][0] * 100, 2) for K in C.SWEEP_KS] == [1.67, 0.95, 0.66, 0.44, 0.17, 0.07]      # Median nur über die falschen Pläne
+    assert [s[K]["n_wrong"] for K in C.SWEEP_KS] == [1060, 652, 534, 368, 225, 111] == [s[K]["n_pred"] - s[K]["hits"] for K in C.SWEEP_KS]
     assert [round(s[K]["hits"] / s[K]["n_pred"] * 100, 1) for K in C.SWEEP_KS] == [70.6, 81.9, 85.2, 89.8, 93.8, 96.9]
 
 
