@@ -1,7 +1,7 @@
 """Der Entscheider, die Rückrechnung (exakt und robust), die Vorhersage, andere Entscheider, Einheiten, Zählungen über feste Instanzen und Verdikte (reine Funktionen: Art, Text; jede Zahl im Text kommt aus der Rechnung).
 
 Gefragt wird: Welche Gewichte erklären beobachtete Entscheidungen? Ein Entscheider mit verborgenem Gewicht w* wählt auf K Instanzen (Seed + j) den für ihn besten Plan; gesucht ist das Gewicht. Exakt ist die erklärende Menge die
-Schnittmenge der Intervalle, in denen der jeweils gewählte Plan optimal ist; bei verrauschten Entscheidungen wird sie leer, dann hilft die Anpassung mit der kleinsten Regret-Summe."""
+Schnittmenge der Intervalle, in denen der jeweils gewählte Plan optimal ist; bei verrauschten Entscheidungen wird sie mit mehr Entscheidungen immer häufiger leer, dann hilft die Anpassung mit der kleinsten Regret-Summe."""
 
 from dataclasses import dataclass
 from fractions import Fraction

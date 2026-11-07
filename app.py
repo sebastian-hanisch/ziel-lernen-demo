@@ -100,7 +100,7 @@ with st.expander("So funktioniert die Rückrechnung", expanded=True):
 1. **Die Instanz:** Kosten und Zeit sind zwei Zahlentabellen (ganze Zahlen 11 bis 109). Der Entscheider minimiert **(1 − w) · Kosten + w · Zeit** mit seinem verborgenen Gewicht `w`; alle n! Pläne werden aufgezählt, bei Gleichstand gilt der kleinste Index.
 2. **Ein Intervall je Entscheidung:** Ein Plan ist für einen **Bereich** von Gewichten optimal (eine Ecke der unteren konvexen Hülle der Punkte Kosten/Zeit), für **ein einziges** Gewicht (auf einer Kante) oder für **keines**.
 3. **Die erklärende Menge:** der Schnitt der Intervalle aller beobachteten Entscheidungen; die **Mitte** ist die Schätzung. **Vorhersage:** auf 20 neuen Instanzen zählt, wie oft der Plan der Schätzung dem Plan des wahren Gewichts gleicht.
-4. **Rauschen:** rechnet der Entscheider mit Schätzungen (jede Zahl um bis zu ±a verschoben), wird der Schnitt leer; die **robuste Anpassung** nimmt dann das Gewicht mit der kleinsten Summe der relativen Regrets.
+4. **Rauschen:** rechnet der Entscheider mit Schätzungen (jede Zahl um bis zu ±a verschoben), wird der Schnitt mit mehr Entscheidungen immer häufiger leer; die **robuste Anpassung** nimmt dann das Gewicht mit der kleinsten Summe der relativen Regrets.
 5. **Messungen, kein Satz:** Alle Zahlen sind Zählungen an festen Instanzen dieses Zufallsmodells; sie sagen nichts über echte Entscheider.
         """
     )
@@ -172,7 +172,7 @@ if st.toggle("Die Breite und die Vorhersage über feste Instanzen nachrechnen (j
 st.markdown("---")
 
 st.subheader("🔬 Der Entscheider rechnet ungenau")
-st.caption("Rechnet der Entscheider mit geschätzten Zahlen, ist seine Wahl nicht mehr für jedes Gewicht eine Optimalwahl der wahren Zahlen, und der Schnitt wird leer. Die robuste Anpassung nimmt das Gewicht mit der kleinsten Summe der relativen Regrets (Kurve unten).")
+st.caption("Rechnet der Entscheider mit geschätzten Zahlen, ist seine Wahl nicht mehr für jedes Gewicht eine Optimalwahl der wahren Zahlen, und der Schnitt wird mit mehr Entscheidungen immer häufiger leer. Die robuste Anpassung nimmt das Gewicht mit der kleinsten Summe der relativen Regrets (Kurve unten).")
 st.plotly_chart(build_fit_curve(ex), width="stretch", key="fit_chart")
 if settings.a == 0:
     st.info("Mit Schätzfehler 0 ist die Kurve für das wahre Gewicht null, wenn der Schnitt es enthält; erhöhe den Schätzfehler in der Seitenleiste, um den Schnitt zu verlieren.")
@@ -217,8 +217,8 @@ st.markdown(
     """
 | Annahme | Was passiert, wenn sie verletzt ist | Wer setzt an |
 |---|---|---|
-| **Der Entscheider gewichtet linear** | Wählt er nach einer anderen Regel (Zeitgrenze, Reihenfolge der Ziele), erklärt ihn oft kein Gewicht; die Rückrechnung findet dann ein Gewicht, das nichts erklärt | – |
-| **Die Tabellen sind bekannt** | Hier kennt die Rückrechnung die wahren Zahlen; sieht sie nur geschätzte, wird die erklärende Menge zusätzlich verzerrt | Stück 11 |
+| **Der Entscheider gewichtet linear** | Wählt er nach einer Zeitgrenze (ε-Constraint), erklärt ihn in etwa der Hälfte der Entscheidungen kein Gewicht, und die Rückrechnung findet dann ein Gewicht, das nichts erklärt; wählt er lexikographisch (Reihenfolge der Ziele), erklärt ihn ein kleines Gewicht mit breitem Intervall | – |
+| **Die Tabellen sind bekannt** | Hier kennt die Rückrechnung die wahren Zahlen; sieht sie nur geschätzte, wird die erklärende Menge vermutlich zusätzlich verzerrt (Vermutung, nicht gemessen) | Stück 11 |
 | **Genau zwei Ziele** | Bei mehr Zielen ist die erklärende Menge ein Gebiet, nicht ein Intervall; die Aufzählung der Pläne geht weiter, die Darstellung nicht | – |
 | **Alle Pläne sind aufgezählt** | Bis 8 Personen (40 320 Pläne); bei großen Problemen braucht es einen Löser für die Hülle | Dokumentation des Lösers |
 | **Das Gewicht gilt nur in seinen Einheiten** | In anderer Einheit erklärt derselbe Plan ein anderes Gewicht; vergleichbar sind nur Gewichte aus derselben Rechnung | – |

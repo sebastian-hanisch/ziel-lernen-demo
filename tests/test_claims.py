@@ -132,7 +132,7 @@ def test_small_preset():
 def test_correction_numbers(sweeps):
     per = sweeps["exact"]["per"]
     _claim(f"({d1(per[1]['width'][1])} Prozentpunkte bei einer, {d1(per[20]['width'][1])} bei zwanzig)")
-    _claim(f"(null von 180 nichtleer bei zwanzig)")
+    _claim(f"(null von 180 nichtleer bei zwanzig;")
     assert sweeps["noise"]["per"][20]["nonempty"] == 0
     _claim(f"Breite bei K = 2 {d1(per[2]['width'][1])} statt 14,7, Vorhersage bei K = 20 {d1(per[20]['hits'] / per[20]['n_pred'] * 100)} statt 97,3 %, Schätzfehler: {sweeps['noise']['per'][1]['nonempty']} statt 150 nichtleere Mengen bei K = 1")
 
